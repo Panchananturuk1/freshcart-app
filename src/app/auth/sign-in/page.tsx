@@ -15,6 +15,8 @@ type AuthResponse = {
 export default function SignInPage() {
   const router = useRouter();
   const signIn = useAppStore((state) => state.signIn);
+  const refreshAddresses = useAppStore((state) => state.refreshAddresses);
+  const refreshOrders = useAppStore((state) => state.refreshOrders);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,6 +44,7 @@ export default function SignInPage() {
     }
 
     signIn(data.user);
+    await Promise.all([refreshAddresses(), refreshOrders()]);
     const redirectTo =
       typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirectTo") : null;
     const destination =
