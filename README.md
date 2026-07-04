@@ -2,6 +2,10 @@
 
 FreshCart is a mobile-first grocery delivery application built with Next.js, Prisma, cookie-based authentication, and a responsive app-style UI inspired by modern grocery apps.
 
+## Live Demo
+
+https://freshcart-app-woad.vercel.app
+
 ## Stack
 
 - Next.js App Router
