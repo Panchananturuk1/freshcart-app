@@ -2,6 +2,9 @@ import { AppHeader, AdminOverview } from "@/components/commerce-ui";
 import { getProducts } from "@/lib/catalog-db";
 import { prisma } from "@/lib/db";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const statusLabel = (status: string) => {
   switch (status) {
     case "PLACED":
