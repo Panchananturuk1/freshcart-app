@@ -29,7 +29,7 @@ export default function CatalogPage() {
 
   return (
     <AppShell>
-      <AppTopBar title="Browse hotels" subtitle="Fast filters, luxury photos, mobile-first listings" showSearchShortcut={false} />
+      <AppTopBar title="Browse groceries" subtitle="Fast filters, quick add, mobile-first catalog" showSearchShortcut={false} />
       <ScreenContent>
         <section className="space-y-4 rounded-[1.9rem] border border-white/8 bg-white/5 p-4">
           <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4">
@@ -37,7 +37,7 @@ export default function CatalogPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by hotel, brand, or amenity"
+              placeholder="Search by product, brand, or need"
               className="w-full bg-transparent text-sm text-white placeholder:text-emerald-100/45 focus:outline-none"
             />
           </label>
@@ -66,7 +66,7 @@ export default function CatalogPage() {
           </div>
         </section>
 
-        <SectionHeader eyebrow="Catalog" title={`${filteredProducts.length} stays available`} />
+        <SectionHeader eyebrow="Catalog" title={`${filteredProducts.length} items ready to add`} />
         <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

@@ -47,11 +47,11 @@ export function AppTopBar({ title, subtitle, showSearchShortcut = true }: AppTop
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
               <MapPin size={14} />
-              Destination
+              Deliver to
             </p>
             <h1 className="mt-2 truncate font-serif text-[1.75rem] leading-none text-white">{title}</h1>
             <p className="mt-2 truncate text-sm text-emerald-50/68">
-              {subtitle ?? `${activeAddress?.title ?? "Select location"} • ${activeAddress?.eta ?? "Instant confirmation"}`}
+              {subtitle ?? `${activeAddress?.title ?? "Select address"} • ${activeAddress?.eta ?? "Fast delivery"}`}
             </p>
           </div>
 
@@ -76,7 +76,7 @@ export function AppTopBar({ title, subtitle, showSearchShortcut = true }: AppTop
             className="mt-4 flex min-h-12 items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 text-sm text-emerald-50/60"
           >
             <Search size={18} />
-            Search hotels, resorts, villas...
+            Search vegetables, atta, milk, snacks...
           </Link>
         ) : null}
       </div>

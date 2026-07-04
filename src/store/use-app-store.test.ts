@@ -13,8 +13,8 @@ describe("useAppStore", () => {
         role: "customer",
       },
       cart: [
-        { productId: "stay-aurum-skyline", quantity: 1 },
-        { productId: "stay-axis-business", quantity: 2 },
+        { productId: "prod-avocado", quantity: 1 },
+        { productId: "prod-milk", quantity: 2 },
       ],
       addresses: useAppStore.getState().addresses,
       orders: useAppStore.getState().orders,
@@ -23,9 +23,9 @@ describe("useAppStore", () => {
   });
 
   it("adds products to cart by incrementing existing quantities", () => {
-    useAppStore.getState().addToCart("stay-aurum-skyline");
+    useAppStore.getState().addToCart("prod-avocado");
 
-    expect(useAppStore.getState().cart.find((item) => item.productId === "stay-aurum-skyline")?.quantity).toBe(2);
+    expect(useAppStore.getState().cart.find((item) => item.productId === "prod-avocado")?.quantity).toBe(2);
   });
 
   it("places an order and clears the cart", () => {
