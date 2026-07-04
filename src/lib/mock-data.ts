@@ -90,7 +90,7 @@ export const products: Product[] = [
     tags: ["Fresh", "Premium", "Breakfast"],
     description: "Buttery avocados sourced for toast, bowls, and smoothies.",
     prompt:
-      "premium mobile grocery app product photo, two ripe hass avocados in a neat kraft tray with small produce sticker, isolated on soft warm cream background, bright natural studio lighting, crisp e-commerce packshot, realistic texture, no text overlay",
+      "ultra realistic studio product photo, two ripe hass avocados in a molded pulp tray with a small blank produce sticker, isolated on warm off-white background, soft shadow, crisp e-commerce packshot, high detail skin texture, no text, no watermark, no logo",
   },
   {
     id: "prod-spinach",
@@ -107,7 +107,7 @@ export const products: Product[] = [
     tags: ["Leafy", "Salads", "Iron-rich"],
     description: "Tender spinach leaves washed and packed for quick meals.",
     prompt:
-      "premium mobile grocery app product photo, fresh baby spinach leaves in a transparent retail pouch with subtle green label, isolated on pale mint background, bright clean studio lighting, sharp e-commerce packshot, realistic food texture, no text overlay",
+      "ultra realistic studio product photo, fresh baby spinach leaves in a clear retail pouch with minimal matte green band label (no readable text), isolated on pale mint background, soft shadow, bright clean studio lighting, crisp e-commerce packshot, no text, no watermark, no logo",
   },
   {
     id: "prod-milk",
@@ -123,7 +123,7 @@ export const products: Product[] = [
     tags: ["Protein", "Daily", "Organic"],
     description: "Daily-use toned milk from certified farms with cold-chain handling.",
     prompt:
-      "premium mobile grocery app product photo, 1 liter organic toned milk bottle with modern dairy label and light condensation, isolated on soft sky blue background, bright studio lighting, realistic e-commerce packaging shot, no text overlay",
+      "ultra realistic studio product photo, 1 liter toned milk bottle with modern minimal label (no readable text) and light condensation, isolated on soft sky blue background, soft shadow, clean e-commerce packaging shot, no text, no watermark, no logo",
   },
   {
     id: "prod-paneer",
@@ -140,7 +140,7 @@ export const products: Product[] = [
     tags: ["High protein", "Fresh", "Dinner"],
     description: "Soft paneer cubes crafted for curries, wraps, and grilled meals.",
     prompt:
-      "premium mobile grocery app product photo, fresh malai paneer cubes in sealed transparent food tray with premium label, isolated on soft ivory background, bright clean studio lighting, realistic dairy texture, e-commerce packshot, no text overlay",
+      "ultra realistic studio product photo, fresh paneer cubes in a sealed clear plastic tray with a small minimal label (no readable text), isolated on soft ivory background, soft shadow, bright clean studio lighting, realistic dairy texture, crisp e-commerce packshot, no text, no watermark, no logo",
   },
   {
     id: "prod-granola",
@@ -156,7 +156,7 @@ export const products: Product[] = [
     tags: ["Healthy", "Breakfast", "Crunchy"],
     description: "Small-batch granola loaded with dried berries and roasted almonds.",
     prompt:
-      "premium mobile grocery app product photo, berry almond granola stand-up pouch with visible oats berries and almonds, isolated on blush beige background, bright studio lighting, clean e-commerce packshot, realistic packaging, no text overlay",
+      "ultra realistic studio product photo, berry almond granola kraft stand-up pouch with small clear window showing oats berries and almonds, minimal label with no readable text, isolated on blush beige background, soft shadow, bright studio lighting, clean e-commerce packshot, no text, no watermark, no logo",
   },
   {
     id: "prod-coldbrew",
@@ -172,7 +172,7 @@ export const products: Product[] = [
     tags: ["Coffee", "Chilled", "Ready to drink"],
     description: "Slow-steeped cold brew with cocoa notes and a smooth finish.",
     prompt:
-      "premium mobile grocery app product photo, classic cold brew coffee bottle with sleek dark label and realistic condensation, isolated on warm mocha background, bright controlled studio lighting, crisp beverage packshot, no text overlay",
+      "ultra realistic studio product photo, cold brew coffee glass bottle with sleek dark sleeve label (no readable text) and realistic condensation, isolated on warm mocha background, soft shadow, controlled studio lighting, crisp beverage packshot, no text, no watermark, no logo",
   },
   {
     id: "prod-oranges",
@@ -189,7 +189,7 @@ export const products: Product[] = [
     tags: ["Juicy", "Vitamin C", "Seasonal"],
     description: "Sweet, easy-peel oranges packed for family breakfasts and juicing.",
     prompt:
-      "premium mobile grocery app product photo, bright nagpur oranges arranged in a neat produce box with fresh leaves, isolated on vibrant citrus orange background, clean studio lighting, realistic fruit texture, crisp e-commerce packshot, no text overlay",
+      "ultra realistic studio product photo, bright nagpur oranges arranged in a neat cardboard produce box with a few fresh leaves, isolated on vibrant citrus orange background, soft shadow, clean studio lighting, realistic fruit texture, crisp e-commerce packshot, no text, no watermark, no logo",
   },
   {
     id: "prod-detergent",
@@ -205,7 +205,7 @@ export const products: Product[] = [
     tags: ["Home care", "Eco", "Refill"],
     description: "Low-residue liquid detergent with a soft botanical fragrance.",
     prompt:
-      "premium mobile grocery app product photo, eco-friendly liquid detergent bottle with refill-style modern label, isolated on pale sage background, bright clean studio lighting, realistic household packaging shot, crisp e-commerce packshot, no text overlay",
+      "ultra realistic studio product photo, eco-friendly liquid detergent 2L bottle with a minimal modern label (no readable text), isolated on pale sage background, soft shadow, bright clean studio lighting, realistic household packaging shot, crisp e-commerce packshot, no text, no watermark, no logo",
   },
 ];
 
