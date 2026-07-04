@@ -272,4 +272,4 @@ export const customerSpotlight = {
 
 export const getProductBySlug = (slug: string) => products.find((product) => product.slug === slug);
 
-export const getProductImage = (product: Product, size?: string) => buildImage(product.prompt, size);
+export const getProductImage = (product: Product, _size?: string) => `/images/products/${product.slug}.jpg`;

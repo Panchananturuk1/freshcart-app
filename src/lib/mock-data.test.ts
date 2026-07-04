@@ -7,10 +7,9 @@ describe("mock-data helpers", () => {
     expect(getProductBySlug("organic-toned-milk")?.id).toBe("prod-milk");
   });
 
-  it("builds generated image urls for the configured endpoint", () => {
+  it("returns local product image paths", () => {
     const imageUrl = getProductImage(products[0]);
 
-    expect(imageUrl).toContain("https://coresg-normal.trae.ai/api/ide/v1/text_to_image");
-    expect(imageUrl).toContain("image_size=square_hd");
+    expect(imageUrl).toBe(`/images/products/${products[0].slug}.jpg`);
   });
 });
