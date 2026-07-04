@@ -4,7 +4,7 @@ FreshCart is a mobile-first grocery delivery application built with Next.js, Pri
 
 ## Live Demo
 
-https://freshcart-app-woad.vercel.app
+[https://freshcart-app-woad.vercel.app](https://freshcart-app-woad.vercel.app)
 
 ## Stack
 
