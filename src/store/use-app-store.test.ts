@@ -1,9 +1,42 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppStore } from "@/store/use-app-store";
 
 describe("useAppStore", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input.toString();
+      const method = init?.method ?? "GET";
+
+      if (url === "/api/orders" && method === "POST") {
+        return {
+          ok: true,
+          json: async () => ({ orderId: "FC-123456" }),
+        } as Response;
+      }
+
+      if (url === "/api/orders" && method === "GET") {
+        return {
+          ok: true,
+          json: async () => ({
+            items: [
+              {
+                displayId: "FC-123456",
+                status: "PLACED",
+                etaMinutes: 18,
+                total: 499,
+                paymentMethod: "UPI",
+                address: { title: "Home" },
+              },
+            ],
+          }),
+        } as Response;
+      }
+
+      return { ok: false, json: async () => ({ message: "Not found" }) } as Response;
+    }));
+
     useAppStore.persist.clearStorage();
     useAppStore.setState({
       user: {
@@ -28,8 +61,8 @@ describe("useAppStore", () => {
     expect(useAppStore.getState().cart.find((item) => item.productId === "prod-avocado")?.quantity).toBe(2);
   });
 
-  it("places an order and clears the cart", () => {
-    const orderId = useAppStore.getState().placeOrder({
+  it("places an order and clears the cart", async () => {
+    const orderId = await useAppStore.getState().placeOrder({
       addressId: "addr-home",
       paymentMethod: "UPI",
     });

@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Clock3, Leaf, ShieldCheck } from "lucide-react";
 
 import { AppHeader } from "@/components/commerce-ui";
-import { getProductBySlug, getProductImage } from "@/lib/mock-data";
+import { getProductImage } from "@/lib/mock-data";
+import { getProductBySlugDb } from "@/lib/catalog-db";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -12,7 +13,7 @@ type PageProps = {
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlugDb(slug);
 
   if (!product) {
     notFound();

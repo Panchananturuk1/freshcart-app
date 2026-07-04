@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CreditCard, Heart, ReceiptText, Sparkles, Star, Truck } from "lucide-react";
 
-import { adminStats, categories, getProductImage, products, type DemoOrder, type Product } from "@/lib/mock-data";
+import type { CategoryDTO, OrderTimelineDTO, ProductDTO } from "@/lib/catalog-types";
+import { getProductImage } from "@/lib/mock-data";
 import { useAppStore } from "@/store/use-app-store";
 import { AppTopBar, InlineMeta } from "@/components/app-shell";
 
@@ -18,7 +19,7 @@ export function AppHeader() {
   return <AppTopBar title="FreshCart" subtitle="10-minute grocery delivery" />;
 }
 
-export function HomePromoCard() {
+export function HomePromoCard({ products }: { products: ProductDTO[] }) {
   return (
     <section className="overflow-hidden rounded-[2rem] border border-lime-300/14 bg-[radial-gradient(circle_at_top_left,_rgba(163,230,53,0.22),_transparent_34%),linear-gradient(135deg,_#17351d,_#0b150d)] p-5">
       <div className="flex items-start justify-between gap-3">
@@ -58,7 +59,7 @@ export function HomePromoCard() {
   );
 }
 
-export function CategoryRail() {
+export function CategoryRail({ categories }: { categories: CategoryDTO[] }) {
   return (
     <section className="grid grid-cols-3 gap-3 sm:grid-cols-6">
       {categories.map((category) => (
@@ -71,7 +72,7 @@ export function CategoryRail() {
   );
 }
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: ProductDTO }) {
   const addToCart = useAppStore((state) => state.addToCart);
 
   return (
@@ -137,7 +138,7 @@ export function QuickActions() {
   );
 }
 
-export function ReorderCard() {
+export function ReorderCard({ products }: { products: ProductDTO[] }) {
   return (
     <section className="rounded-[1.8rem] border border-white/8 bg-white/5 p-5">
       <div className="flex items-start justify-between gap-3">
@@ -161,7 +162,7 @@ export function ReorderCard() {
   );
 }
 
-export function OrderTimeline({ order }: { order: DemoOrder }) {
+export function OrderTimeline({ order }: { order: OrderTimelineDTO }) {
   return (
     <div className="rounded-[1.75rem] border border-white/8 bg-white/5 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -192,9 +193,16 @@ export function OrderTimeline({ order }: { order: DemoOrder }) {
 }
 
 export function AdminOverview() {
+  const stats = [
+    { label: "Live orders", value: "124", helper: "+18 vs last hour" },
+    { label: "Pending stock alerts", value: "09", helper: "3 critical SKUs" },
+    { label: "New users today", value: "412", helper: "62% from mobile web" },
+    { label: "Fulfillment SLA", value: "96.4%", helper: "Avg handoff in 11 mins" },
+  ];
+
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {adminStats.map((stat) => (
+      {stats.map((stat) => (
         <article key={stat.label} className="rounded-[1.5rem] border border-white/8 bg-white/5 p-5">
           <p className="text-sm text-emerald-50/65">{stat.label}</p>
           <p className="mt-3 font-serif text-4xl text-white">{stat.value}</p>

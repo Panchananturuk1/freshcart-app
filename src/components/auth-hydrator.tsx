@@ -11,6 +11,8 @@ type SessionResponse = {
 
 export function AuthHydrator() {
   const hydrateUser = useAppStore((state) => state.hydrateUser);
+  const refreshAddresses = useAppStore((state) => state.refreshAddresses);
+  const refreshOrders = useAppStore((state) => state.refreshOrders);
 
   useEffect(() => {
     let active = true;
@@ -27,10 +29,16 @@ export function AuthHydrator() {
 
         if (active) {
           hydrateUser(data.user ?? null);
+          if (data.user) {
+            await Promise.all([refreshAddresses(), refreshOrders()]);
+          } else {
+            await Promise.all([refreshAddresses(), refreshOrders()]);
+          }
         }
       } catch {
         if (active) {
           hydrateUser(null);
+          await Promise.all([refreshAddresses(), refreshOrders()]);
         }
       }
     };
@@ -40,7 +48,7 @@ export function AuthHydrator() {
     return () => {
       active = false;
     };
-  }, [hydrateUser]);
+  }, [hydrateUser, refreshAddresses, refreshOrders]);
 
   return null;
 }

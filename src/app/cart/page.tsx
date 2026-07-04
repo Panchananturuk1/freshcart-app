@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AppShell, AppTopBar, ScreenContent, SectionHeader } from "@/components/app-shell";
-import { products } from "@/lib/mock-data";
+import type { ProductDTO } from "@/lib/catalog-types";
 import { useAppStore } from "@/store/use-app-store";
 
 export default function CartPage() {
@@ -12,12 +13,55 @@ export default function CartPage() {
   const removeFromCart = useAppStore((state) => state.removeFromCart);
   const setQuantity = useAppStore((state) => state.setQuantity);
 
-  const lineItems = cart.map((item) => {
-    const product = products.find((entry) => entry.id === item.productId);
-    return product ? { ...product, quantity: item.quantity, lineTotal: product.price * item.quantity } : null;
-  }).filter(Boolean);
+  const [productsById, setProductsById] = useState<Record<string, ProductDTO>>({});
 
-  const subtotal = lineItems.reduce((sum, item) => sum + (item?.lineTotal ?? 0), 0);
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      const ids = cart.map((entry) => entry.productId);
+      if (ids.length === 0) {
+        setProductsById({});
+        return;
+      }
+
+      const response = await fetch("/api/products/by-ids", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = (await response.json()) as { items: ProductDTO[] };
+      if (cancelled) {
+        return;
+      }
+
+      setProductsById(Object.fromEntries(payload.items.map((product) => [product.id, product])));
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart]);
+
+  const lineItems = useMemo(
+    () =>
+      cart
+        .map((item) => {
+          const product = productsById[item.productId];
+          return product ? { ...product, quantity: item.quantity, lineTotal: product.price * item.quantity } : null;
+        })
+        .filter(Boolean),
+    [cart, productsById],
+  );
+
+  const subtotal = useMemo(() => lineItems.reduce((sum, item) => sum + (item?.lineTotal ?? 0), 0), [lineItems]);
   const deliveryFee = subtotal > 499 ? 0 : 49;
   const total = subtotal + deliveryFee;
 

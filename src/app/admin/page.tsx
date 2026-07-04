@@ -1,7 +1,36 @@
 import { AppHeader, AdminOverview } from "@/components/commerce-ui";
-import { demoOrders, products } from "@/lib/mock-data";
+import { getProducts } from "@/lib/catalog-db";
+import { prisma } from "@/lib/db";
 
-export default function AdminPage() {
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "PLACED":
+      return "Placed";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "PICKING":
+      return "Picking";
+    case "PACKED":
+      return "Packed";
+    case "OUT_FOR_DELIVERY":
+      return "Out for delivery";
+    case "DELIVERED":
+      return "Delivered";
+    default:
+      return status;
+  }
+};
+
+export default async function AdminPage() {
+  const [products, recentOrders] = await Promise.all([
+    getProducts(),
+    prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      include: { address: true, user: true },
+    }),
+  ]);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -38,17 +67,25 @@ export default function AdminPage() {
           <div className="rounded-[2rem] border border-white/8 bg-white/5 p-6">
             <h2 className="font-serif text-3xl text-white">Order processing queue</h2>
             <div className="mt-5 space-y-3">
-              {demoOrders.map((order) => (
-                <article key={order.id} className="rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
-                  <p className="text-sm font-semibold text-white">{order.id}</p>
-                  <p className="mt-1 text-sm text-emerald-50/70">{order.customer} • {order.addressLabel}</p>
-                  <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                    <span className="rounded-full bg-white/8 px-3 py-2 text-emerald-50/80">{order.status}</span>
-                    <span className="rounded-full bg-lime-300 px-3 py-2 font-semibold text-zinc-950">ETA {order.etaMinutes} mins</span>
-                    <span className="rounded-full bg-white/8 px-3 py-2 text-emerald-50/80">{order.paymentMethod}</span>
-                  </div>
+              {recentOrders.length ? (
+                recentOrders.map((order) => (
+                  <article key={order.id} className="rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
+                    <p className="text-sm font-semibold text-white">{order.displayId}</p>
+                    <p className="mt-1 text-sm text-emerald-50/70">
+                      {order.user.fullName} • {order.address?.title ?? "No address"}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                      <span className="rounded-full bg-white/8 px-3 py-2 text-emerald-50/80">{statusLabel(order.status)}</span>
+                      <span className="rounded-full bg-lime-300 px-3 py-2 font-semibold text-zinc-950">ETA {order.etaMinutes} mins</span>
+                      <span className="rounded-full bg-white/8 px-3 py-2 text-emerald-50/80">{order.paymentMethod}</span>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <article className="rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
+                  <p className="text-sm text-emerald-50/70">No orders yet.</p>
                 </article>
-              ))}
+              )}
             </div>
           </div>
         </section>

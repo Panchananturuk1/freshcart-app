@@ -1,38 +1,72 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { MapPin, PhoneCall, Route } from "lucide-react";
 
 import { AppShell, AppTopBar, ScreenContent, SectionHeader } from "@/components/app-shell";
 import { OrderTimeline } from "@/components/commerce-ui";
-import { useAppStore } from "@/store/use-app-store";
+import type { OrderTimelineDTO } from "@/lib/catalog-types";
 
 export default function TrackingPage() {
   const params = useParams<{ orderId: string }>();
-  const orders = useAppStore((state) => state.orders);
-  const advanceOrder = useAppStore((state) => state.advanceOrder);
-
-  const order = useMemo(() => orders.find((entry) => entry.id === params.orderId), [orders, params.orderId]);
+  const [order, setOrder] = useState<(OrderTimelineDTO & { addressLabel: string }) | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!order || order.status === "Delivered") {
-      return;
-    }
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        setError(null);
+        const response = await fetch(`/api/orders/${params.orderId}/tracking`, { cache: "no-store" });
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { message?: string } | null;
+          throw new Error(body?.message ?? "Failed to load order");
+        }
+        const payload = (await response.json()) as OrderTimelineDTO & { addressLabel: string };
+        if (!cancelled) {
+          setOrder(payload);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load order");
+        }
+      }
+    };
+
+    load();
 
     const timer = window.setInterval(() => {
-      advanceOrder(order.id);
+      if (order?.status === "Delivered") {
+        return;
+      }
+      load();
     }, 5000);
 
-    return () => window.clearInterval(timer);
-  }, [advanceOrder, order]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [order?.status, params.orderId]);
+
+  if (error) {
+    return (
+      <AppShell>
+        <AppTopBar title="Track order" showSearchShortcut={false} />
+        <ScreenContent>
+          <main className="py-10 text-center text-emerald-50/70">{error}</main>
+        </ScreenContent>
+      </AppShell>
+    );
+  }
 
   if (!order) {
     return (
       <AppShell>
         <AppTopBar title="Track order" showSearchShortcut={false} />
         <ScreenContent>
-          <main className="py-10 text-center text-emerald-50/70">Order not found.</main>
+          <main className="py-10 text-center text-emerald-50/70">Loading…</main>
         </ScreenContent>
       </AppShell>
     );

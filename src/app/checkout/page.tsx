@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Smartphone, Wallet } from "lucide-react";
 
 import { AppShell, AppTopBar, ScreenContent, SectionHeader } from "@/components/app-shell";
-import { products } from "@/lib/mock-data";
+import type { ProductDTO } from "@/lib/catalog-types";
 import { useAppStore } from "@/store/use-app-store";
 
 const paymentOptions = [
-  { label: "UPI", helper: "Fastest completion on mobile", icon: Smartphone },
-  { label: "Card", helper: "Credit and debit cards", icon: ShieldCheck },
-  { label: "Wallet", helper: "Use prepaid wallet balance", icon: Wallet },
+  { label: "UPI", value: "UPI", helper: "Fastest completion on mobile", icon: Smartphone },
+  { label: "Card", value: "CARD", helper: "Credit and debit cards", icon: ShieldCheck },
+  { label: "Wallet", value: "WALLET", helper: "Use prepaid wallet balance", icon: Wallet },
 ] as const;
 
 export default function CheckoutPage() {
@@ -21,15 +21,50 @@ export default function CheckoutPage() {
   const activeAddressId = useAppStore((state) => state.activeAddressId);
   const selectAddress = useAppStore((state) => state.selectAddress);
   const placeOrder = useAppStore((state) => state.placeOrder);
-  const [paymentMethod, setPaymentMethod] = useState<(typeof paymentOptions)[number]["label"]>("UPI");
+  const [paymentMethod, setPaymentMethod] = useState<(typeof paymentOptions)[number]["value"]>("UPI");
+  const [productsById, setProductsById] = useState<Record<string, ProductDTO>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      const ids = cart.map((entry) => entry.productId);
+      if (ids.length === 0) {
+        setProductsById({});
+        return;
+      }
+
+      const response = await fetch("/api/products/by-ids", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = (await response.json()) as { items: ProductDTO[] };
+      if (!cancelled) {
+        setProductsById(Object.fromEntries(payload.items.map((product) => [product.id, product])));
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart]);
 
   const subtotal = useMemo(
     () =>
       cart.reduce((sum, item) => {
-        const product = products.find((entry) => entry.id === item.productId);
+        const product = productsById[item.productId];
         return sum + (product?.price ?? 0) * item.quantity;
       }, 0),
-    [cart],
+    [cart, productsById],
   );
 
   const deliveryFee = subtotal > 499 ? 0 : 49;
@@ -70,8 +105,8 @@ export default function CheckoutPage() {
                 <button
                   key={option.label}
                   type="button"
-                  onClick={() => setPaymentMethod(option.label)}
-                  className={`rounded-[1.5rem] border p-4 text-left ${paymentMethod === option.label ? "border-lime-300 bg-lime-300/10" : "border-white/8 bg-black/20"}`}
+                  onClick={() => setPaymentMethod(option.value)}
+                  className={`rounded-[1.5rem] border p-4 text-left ${paymentMethod === option.value ? "border-lime-300 bg-lime-300/10" : "border-white/8 bg-black/20"}`}
                 >
                   <option.icon className="text-lime-300" />
                   <p className="mt-4 text-sm font-semibold text-white">{option.label}</p>
@@ -103,13 +138,26 @@ export default function CheckoutPage() {
             type="button"
             disabled={!cart.length}
             onClick={() => {
-              const orderId = placeOrder({ addressId: activeAddressId, paymentMethod });
-              router.push(`/order/${orderId}/tracking`);
+              setError(null);
+              void (async () => {
+                try {
+                  const orderId = await placeOrder({ addressId: activeAddressId ?? null, paymentMethod });
+                  router.push(`/order/${orderId}/tracking`);
+                  router.refresh();
+                } catch (err) {
+                  const message = err instanceof Error ? err.message : "Failed to place order";
+                  setError(message);
+                  if (message.toLowerCase().includes("sign in")) {
+                    router.push("/auth/sign-in");
+                  }
+                }
+              })();
             }}
             className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-lime-300 px-4 text-sm font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Place order
           </button>
+          {error ? <p className="mt-3 text-xs leading-6 text-rose-200">{error}</p> : null}
           <p className="mt-4 text-xs leading-6 text-emerald-100/55">
             Payment integrations are structured for UPI, card, and wallet gateways, with webhook validation planned for production secrets in Vercel environment variables.
           </p>

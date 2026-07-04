@@ -4,7 +4,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import type { AppUser } from "@/lib/auth-types";
-import { demoOrders, products, savedAddresses, type Address, type DemoOrder } from "@/lib/mock-data";
 
 type CartItem = {
   productId: string;
@@ -12,57 +11,134 @@ type CartItem = {
 };
 
 type CheckoutPayload = {
-  addressId: string;
-  paymentMethod: "UPI" | "Card" | "Wallet";
+  addressId: string | null;
+  paymentMethod: "UPI" | "CARD" | "WALLET";
+};
+
+export type Address = {
+  id: string;
+  label: string;
+  title: string;
+  line1: string;
+  line2: string;
+  city: string;
+  eta: string;
+  isDefault: boolean;
+};
+
+export type OrderSummary = {
+  id: string;
+  total: number;
+  paymentMethod: string;
+  status: string;
+  etaMinutes: number;
+  addressLabel: string;
 };
 
 type AppState = {
   user: AppUser | null;
   cart: CartItem[];
   addresses: Address[];
-  orders: DemoOrder[];
-  activeAddressId: string;
+  orders: OrderSummary[];
+  activeAddressId: string | null;
   signIn: (user: AppUser) => void;
   signOut: () => void;
   hydrateUser: (user: AppUser | null) => void;
+  refreshAddresses: () => Promise<void>;
+  refreshOrders: () => Promise<void>;
   addToCart: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
-  selectAddress: (addressId: string) => void;
-  addAddress: (address: Address) => void;
-  placeOrder: (payload: CheckoutPayload) => string;
-  advanceOrder: (orderId: string) => void;
+  selectAddress: (addressId: string | null) => void;
+  createAddress: (payload: Omit<Address, "id">) => Promise<void>;
+  placeOrder: (payload: CheckoutPayload) => Promise<string>;
 };
 
-const nextStatuses = ["Placed", "Confirmed", "Picking", "Packed", "Out for delivery", "Delivered"] as const;
-
-const makeTimelineNote = (status: (typeof nextStatuses)[number]) => {
-  const notes: Record<(typeof nextStatuses)[number], string> = {
-    Placed: "Order created and payment authorization completed.",
-    Confirmed: "The fulfillment center accepted your basket.",
-    Picking: "A store associate is collecting your products.",
-    Packed: "Items were quality checked and sealed.",
-    "Out for delivery": "Your rider is on the route with live ETA updates.",
-    Delivered: "Order handed over successfully.",
-  };
-
-  return notes[status];
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "PLACED":
+      return "Placed";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "PICKING":
+      return "Picking";
+    case "PACKED":
+      return "Packed";
+    case "OUT_FOR_DELIVERY":
+      return "Out for delivery";
+    case "DELIVERED":
+      return "Delivered";
+    default:
+      return status;
+  }
 };
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       user: null,
-      cart: [
-        { productId: "prod-avocado", quantity: 1 },
-        { productId: "prod-milk", quantity: 2 },
-      ],
-      addresses: savedAddresses,
-      orders: demoOrders,
-      activeAddressId: "addr-home",
+      cart: [],
+      addresses: [],
+      orders: [],
+      activeAddressId: null,
       signIn: (user) => set({ user }),
-      signOut: () => set({ user: null }),
+      signOut: () => set({ user: null, addresses: [], orders: [], activeAddressId: null, cart: [] }),
       hydrateUser: (user) => set({ user }),
+      refreshAddresses: async () => {
+        const { user, activeAddressId } = get();
+        if (!user) {
+          set({ addresses: [], activeAddressId: null });
+          return;
+        }
+
+        const response = await fetch("/api/addresses", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as { items: Address[] };
+        const nextActive =
+          (activeAddressId && payload.items.some((entry) => entry.id === activeAddressId) ? activeAddressId : null) ??
+          payload.items.find((entry) => entry.isDefault)?.id ??
+          payload.items[0]?.id ??
+          null;
+
+        set({ addresses: payload.items, activeAddressId: nextActive });
+      },
+      refreshOrders: async () => {
+        const { user } = get();
+        if (!user) {
+          set({ orders: [] });
+          return;
+        }
+
+        const response = await fetch("/api/orders", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          items: Array<{
+            displayId: string;
+            status: string;
+            etaMinutes: number;
+            total: number;
+            paymentMethod: string;
+            address?: { title: string } | null;
+          }>;
+        };
+
+        set({
+          orders: payload.items.map((order) => ({
+            id: order.displayId,
+            total: order.total,
+            paymentMethod: order.paymentMethod,
+            status: statusLabel(order.status),
+            etaMinutes: order.etaMinutes,
+            addressLabel: order.address?.title ?? "Saved Address",
+          })),
+        });
+      },
       addToCart: (productId) =>
         set((state) => {
           const existing = state.cart.find((item) => item.productId === productId);
@@ -89,95 +165,52 @@ export const useAppStore = create<AppState>()(
           cart: state.cart.filter((item) => item.productId !== productId),
         })),
       selectAddress: (addressId) => set({ activeAddressId: addressId }),
-      addAddress: (address) =>
-        set((state) => ({
-          addresses: [...state.addresses, address],
-        })),
-      placeOrder: ({ addressId, paymentMethod }) => {
-        const state = get();
-        const orderId = `FC-${Math.floor(100000 + Math.random() * 900000)}`;
-        const total = state.cart.reduce((sum, item) => {
-          const product = products.find((entry) => entry.id === item.productId);
-          return sum + (product?.price ?? 0) * item.quantity;
-        }, 49);
+      createAddress: async (payload) => {
+        const { user } = get();
+        if (!user) {
+          return;
+        }
 
-        const newOrder: DemoOrder = {
-          id: orderId,
-          customer: state.user?.name ?? "Guest Customer",
-          total,
-          paymentMethod,
-          status: "Placed",
-          etaMinutes: 16,
-          addressLabel:
-            state.addresses.find((address) => address.id === addressId)?.title ?? "Saved Address",
-          rider: {
-            name: "Assigned after packing",
-            phoneMasked: "Pending",
-            vehicle: "Dispatch in progress",
-          },
-          items: state.cart,
-          timeline: [
-            {
-              status: "Placed",
-              time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-              note: makeTimelineNote("Placed"),
-            },
-          ],
-        };
-
-        set({
-          orders: [newOrder, ...state.orders],
-          cart: [],
-          activeAddressId: addressId,
+        const response = await fetch("/api/addresses", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
         });
 
-        return orderId;
+        if (!response.ok) {
+          return;
+        }
+
+        await get().refreshAddresses();
       },
-      advanceOrder: (orderId) =>
-        set((state) => ({
-          orders: state.orders.map((order) => {
-            if (order.id !== orderId) {
-              return order;
-            }
+      placeOrder: async ({ addressId, paymentMethod }) => {
+        const state = get();
+        if (!state.user) {
+          throw new Error("Sign in required");
+        }
 
-            const currentIndex = nextStatuses.indexOf(order.status);
-            const nextStatus = nextStatuses[Math.min(currentIndex + 1, nextStatuses.length - 1)];
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ addressId, paymentMethod, items: state.cart }),
+        });
 
-            if (nextStatus === order.status) {
-              return order;
-            }
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { message?: string } | null;
+          throw new Error(body?.message ?? "Failed to place order");
+        }
 
-            return {
-              ...order,
-              status: nextStatus,
-              etaMinutes: Math.max(order.etaMinutes - 3, 0),
-              rider:
-                nextStatus === "Out for delivery" || nextStatus === "Delivered"
-                  ? {
-                      name: "Rahul",
-                      phoneMasked: "+91 98XXXX221",
-                      vehicle: "Blue scooter • DL 8S AH 1417",
-                    }
-                  : order.rider,
-              timeline: [
-                ...order.timeline,
-                {
-                  status: nextStatus,
-                  time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-                  note: makeTimelineNote(nextStatus),
-                },
-              ],
-            };
-          }),
-        })),
+        const data = (await response.json()) as { orderId: string };
+        set({ cart: [] });
+        await Promise.all([get().refreshOrders()]);
+        return data.orderId;
+      },
     }),
     {
       name: "freshcart-store",
       partialize: (state) => ({
         user: state.user,
         cart: state.cart,
-        addresses: state.addresses,
-        orders: state.orders,
         activeAddressId: state.activeAddressId,
       }),
     },

@@ -3,19 +3,73 @@ import { ArrowRight, Clock3, Wallet } from "lucide-react";
 
 import { AppShell, AppTopBar, ScreenContent, SectionHeader } from "@/components/app-shell";
 import { CategoryRail, HomePromoCard, OrderTimeline, ProductCard, QuickActions, ReorderCard } from "@/components/commerce-ui";
-import { customerSpotlight, demoOrders, products, savedAddresses } from "@/lib/mock-data";
+import type { OrderTimelineDTO } from "@/lib/catalog-types";
+import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { getCategories, getProducts } from "@/lib/catalog-db";
+import { customerSpotlight } from "@/lib/mock-data";
 
-export default function HomePage() {
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "PLACED":
+      return "Placed";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "PICKING":
+      return "Picking";
+    case "PACKED":
+      return "Packed";
+    case "OUT_FOR_DELIVERY":
+      return "Out for delivery";
+    case "DELIVERED":
+      return "Delivered";
+    default:
+      return status;
+  }
+};
+
+export default async function HomePage() {
+  const [categories, products, user] = await Promise.all([getCategories(), getProducts(), getSessionUser()]);
   const featuredProducts = products.slice(0, 6);
-  const liveOrder = demoOrders[0];
+
+  const [addresses, latestOrder] = await Promise.all([
+    user
+      ? prisma.address.findMany({ where: { userId: user.id }, orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }] })
+      : Promise.resolve([]),
+    user
+      ? prisma.order.findFirst({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          include: { events: { orderBy: { createdAt: "asc" } } },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  const liveOrder: OrderTimelineDTO | null = latestOrder
+    ? {
+        id: latestOrder.displayId,
+        status: statusLabel(latestOrder.status),
+        etaMinutes: latestOrder.etaMinutes,
+        rider: {
+          name: latestOrder.riderName,
+          phoneMasked: latestOrder.riderPhoneMasked,
+          vehicle: latestOrder.riderVehicle,
+        },
+        timeline: latestOrder.events.map((event) => ({
+          status: statusLabel(event.status),
+          time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(event.createdAt),
+          note: event.note,
+        })),
+      }
+    : null;
 
   return (
     <AppShell>
       <AppTopBar title="FreshCart" subtitle="Home delivery in 10-15 mins • Sector 42, Gurugram" />
       <ScreenContent>
-        <HomePromoCard />
+        <HomePromoCard products={products} />
         <QuickActions />
-        <CategoryRail />
+        <CategoryRail categories={categories} />
 
         <section className="grid gap-3 md:grid-cols-3">
           <article className="rounded-[1.6rem] border border-white/8 bg-white/5 p-4">
@@ -59,33 +113,52 @@ export default function HomePage() {
 
         <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-4">
-            <OrderTimeline order={liveOrder} />
+            {liveOrder ? <OrderTimeline order={liveOrder} /> : null}
           </div>
           <div className="space-y-4">
-            <ReorderCard />
+            <ReorderCard products={products} />
             <section className="rounded-[1.75rem] border border-white/8 bg-white/5 p-5">
               <SectionHeader eyebrow="Addresses" title="Saved delivery spots" />
               <div className="mt-4 space-y-3">
-                {savedAddresses.map((address) => (
-                  <div key={address.id} className="rounded-[1.35rem] border border-white/8 bg-black/20 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{address.label}</p>
-                        <p className="mt-1 text-sm text-emerald-50/72">{address.title}</p>
-                        <p className="mt-1 text-xs text-emerald-100/55">{address.line1}, {address.line2}</p>
+                {addresses.length ? (
+                  addresses.map((address) => (
+                    <div key={address.id} className="rounded-[1.35rem] border border-white/8 bg-black/20 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-white">{address.label}</p>
+                          <p className="mt-1 text-sm text-emerald-50/72">{address.title}</p>
+                          <p className="mt-1 text-xs text-emerald-100/55">
+                            {address.line1}, {address.line2}
+                          </p>
+                        </div>
+                        {address.isDefault ? (
+                          <span className="rounded-full bg-lime-300 px-3 py-1 text-[11px] font-semibold text-zinc-950">Default</span>
+                        ) : null}
                       </div>
-                      {address.isDefault ? <span className="rounded-full bg-lime-300 px-3 py-1 text-[11px] font-semibold text-zinc-950">Default</span> : null}
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-[1.35rem] border border-white/8 bg-black/20 p-4">
+                    <p className="text-sm font-semibold text-white">{user ? "No addresses saved yet" : "Sign in to save addresses"}</p>
+                    <p className="mt-1 text-sm text-emerald-50/72">
+                      {user ? "Add a delivery address from your account." : "Create an account to store delivery details and order history."}
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <Link href="/account" className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white">
                   My account
                 </Link>
-                <Link href={`/order/${liveOrder.id}/tracking`} className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-lime-300 px-4 text-sm font-semibold text-zinc-950">
-                  Track now
-                </Link>
+                {liveOrder ? (
+                  <Link href={`/order/${liveOrder.id}/tracking`} className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-lime-300 px-4 text-sm font-semibold text-zinc-950">
+                    Track now
+                  </Link>
+                ) : (
+                  <Link href="/catalog" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-lime-300 px-4 text-sm font-semibold text-zinc-950">
+                    Shop now
+                  </Link>
+                )}
               </div>
             </section>
           </div>
