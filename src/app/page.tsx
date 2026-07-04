@@ -11,7 +11,7 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <AppTopBar title="FreshCart" subtitle="Home delivery in 10-15 mins • Sector 42, Gurugram" />
+      <AppTopBar title="FreshCart" subtitle="Luxury stays in minutes • Sector 42, Gurugram" />
       <ScreenContent>
         <HomePromoCard />
         <QuickActions />
@@ -22,27 +22,27 @@ export default function HomePage() {
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-lime-300/12">
               <Clock3 className="text-lime-300" size={18} />
             </div>
-            <p className="mt-4 text-sm font-semibold text-white">Delivery now</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-50/68">Morning milk, snacks, and vegetables available instantly.</p>
+            <p className="mt-4 text-sm font-semibold text-white">Check-in ready</p>
+            <p className="mt-1 text-xs leading-5 text-emerald-50/68">Instant confirmation with flexible policies on select stays.</p>
           </article>
           <article className="rounded-[1.6rem] border border-white/8 bg-white/5 p-4">
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-lime-300/12">
               <Wallet className="text-lime-300" size={18} />
             </div>
-            <p className="mt-4 text-sm font-semibold text-white">Pay your way</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-50/68">UPI, card, and wallet-first payment flow for mobile checkout.</p>
+            <p className="mt-4 text-sm font-semibold text-white">Pay securely</p>
+            <p className="mt-1 text-xs leading-5 text-emerald-50/68">UPI, card, and wallet flows tuned for fast mobile booking.</p>
           </article>
           <article className="rounded-[1.6rem] border border-white/8 bg-white/5 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-100/56">Fresh Plus</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-100/56">{customerSpotlight.loyaltyTier}</p>
             <p className="mt-3 font-serif text-3xl text-white">INR {customerSpotlight.savings}</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-50/68">Saved this month with your {customerSpotlight.loyaltyTier} membership.</p>
+            <p className="mt-1 text-xs leading-5 text-emerald-50/68">Saved this month with member-only rates and upgrades.</p>
           </article>
         </section>
 
         <section className="space-y-4">
           <SectionHeader
             eyebrow="Trending now"
-            title="Tonight's fast-moving items"
+            title="Top stays near you"
             action={
               <Link href="/catalog" className="inline-flex items-center gap-1 text-sm font-semibold text-lime-300">
                 See all

@@ -54,8 +54,8 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       user: null,
       cart: [
-        { productId: "prod-avocado", quantity: 1 },
-        { productId: "prod-milk", quantity: 2 },
+        { productId: "stay-aurum-skyline", quantity: 1 },
+        { productId: "stay-axis-business", quantity: 2 },
       ],
       addresses: savedAddresses,
       orders: demoOrders,

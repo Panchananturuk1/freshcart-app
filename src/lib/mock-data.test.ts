@@ -4,7 +4,7 @@ import { getProductBySlug, getProductImage, products } from "@/lib/mock-data";
 
 describe("mock-data helpers", () => {
   it("returns a product by slug", () => {
-    expect(getProductBySlug("organic-toned-milk")?.id).toBe("prod-milk");
+    expect(getProductBySlug("aurum-skyline-hotel")?.id).toBe("stay-aurum-skyline");
   });
 
   it("builds generated image urls for the configured endpoint", () => {

@@ -15,7 +15,7 @@ const currency = new Intl.NumberFormat("en-IN", {
 });
 
 export function AppHeader() {
-  return <AppTopBar title="FreshCart" subtitle="10-minute grocery delivery" />;
+  return <AppTopBar title="FreshCart" subtitle="Luxury hotel bookings" />;
 }
 
 export function HomePromoCard() {
@@ -24,21 +24,21 @@ export function HomePromoCard() {
       <div className="flex items-start justify-between gap-3">
         <div className="inline-flex items-center gap-2 rounded-full bg-lime-300/12 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-100">
           <Sparkles size={13} />
-          Super Saver
+          Member rates
         </div>
-        <span className="rounded-full bg-white/8 px-3 py-1.5 text-[11px] text-lime-100">Free delivery above INR 499</span>
+        <span className="rounded-full bg-white/8 px-3 py-1.5 text-[11px] text-lime-100">Free cancellation on select stays</span>
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-[1.05fr_0.95fr] md:items-center">
         <div>
-          <h2 className="font-serif text-[2rem] leading-tight text-white">Everyday groceries in 10 minutes, designed like a real mobile shopping app.</h2>
+          <h2 className="font-serif text-[2rem] leading-tight text-white">Luxury stays, designed like a real mobile booking app.</h2>
           <p className="mt-3 text-sm leading-6 text-emerald-50/74">
-            Fast category jumps, dense product cards, quick add buttons, and sticky actions inspired by top grocery delivery mobile flows.
+            Fast filters, premium imagery, and touch-first cards built for quick comparisons and instant booking.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-full bg-white/8 px-3 py-2 text-xs text-emerald-50/78">App-like bottom nav</span>
-            <span className="rounded-full bg-white/8 px-3 py-2 text-xs text-emerald-50/78">Touch-first product cards</span>
-            <span className="rounded-full bg-white/8 px-3 py-2 text-xs text-emerald-50/78">Sticky checkout flow</span>
+            <span className="rounded-full bg-white/8 px-3 py-2 text-xs text-emerald-50/78">Touch-first stay cards</span>
+            <span className="rounded-full bg-white/8 px-3 py-2 text-xs text-emerald-50/78">Fast booking flow</span>
           </div>
         </div>
 
