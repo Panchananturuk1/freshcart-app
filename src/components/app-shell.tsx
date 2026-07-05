@@ -61,10 +61,10 @@ export function AppTopBar({ title, subtitle, showSearchShortcut = true }: AppTop
               <Link href="/" className="text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
                 FreshCart
               </Link>
-              <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
+              <Link href="/location" className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
                 <MapPin size={14} />
                 Deliver to
-              </p>
+              </Link>
             </div>
             <h1 className="mt-2 truncate font-serif text-[1.75rem] leading-none text-white">{title}</h1>
             <p className="mt-2 truncate text-sm text-emerald-50/68">

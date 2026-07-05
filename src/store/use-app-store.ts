@@ -50,7 +50,7 @@ type AppState = {
   setQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   selectAddress: (addressId: string | null) => void;
-  createAddress: (payload: Omit<Address, "id">) => Promise<void>;
+  createAddress: (payload: Omit<Address, "id">) => Promise<string | null>;
   placeOrder: (payload: CheckoutPayload) => Promise<string>;
 };
 
@@ -168,7 +168,7 @@ export const useAppStore = create<AppState>()(
       createAddress: async (payload) => {
         const { user } = get();
         if (!user) {
-          return;
+          return null;
         }
 
         const response = await fetch("/api/addresses", {
@@ -178,10 +178,13 @@ export const useAppStore = create<AppState>()(
         });
 
         if (!response.ok) {
-          return;
+          return null;
         }
 
+        const created = (await response.json()) as Address;
+        set({ activeAddressId: created.id });
         await get().refreshAddresses();
+        return created.id;
       },
       placeOrder: async ({ addressId, paymentMethod }) => {
         const state = get();
