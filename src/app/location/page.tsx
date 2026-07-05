@@ -83,7 +83,7 @@ export default function LocationPage() {
     if (!apiKey) {
       return null;
     }
-    return `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`;
+    return `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&loading=async`;
   }, [apiKey]);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -103,121 +103,151 @@ export default function LocationPage() {
       return;
     }
 
-    const google = (window as unknown as { google?: unknown }).google;
-    const googleRecord = asRecord(google);
-    const mapsRecord = asRecord(googleRecord.maps);
-    const placesRecord = asRecord(mapsRecord.places);
-    if (!mapsRecord || !mapContainerRef.current || !inputRef.current || mapRef.current) {
-      return;
-    }
+    let cancelled = false;
+    let attempts = 0;
 
-    const initial = { lat: 28.4595, lng: 77.0266 };
-    const MapCtor = mapsRecord.Map as unknown as new (el: HTMLElement, options: Record<string, unknown>) => unknown;
-    const MarkerCtor = mapsRecord.Marker as unknown as new (options: Record<string, unknown>) => unknown;
-    const GeocoderCtor = mapsRecord.Geocoder as unknown as new () => unknown;
-    const AutocompleteCtor = placesRecord.Autocomplete as unknown as new (el: HTMLInputElement, options: Record<string, unknown>) => unknown;
-
-    if (!MapCtor || !MarkerCtor || !GeocoderCtor || !AutocompleteCtor) {
-      setTimeout(() => setError("Google Maps is not available. Check your API key and enabled APIs."), 0);
-      return;
-    }
-
-    const map = new MapCtor(mapContainerRef.current, {
-      center: initial,
-      zoom: 14,
-      mapTypeControl: false,
-      fullscreenControl: false,
-      streetViewControl: false,
-    });
-
-    const marker = new MarkerCtor({ map, position: initial });
-    const geocoder = new GeocoderCtor();
-
-    const autocomplete = new AutocompleteCtor(inputRef.current, {
-      fields: ["address_components", "formatted_address", "geometry", "name"],
-    });
-    const autocompleteRecord = asRecord(autocomplete);
-    const bindTo = asFunction(autocompleteRecord.bindTo);
-    if (bindTo) {
-      bindTo.call(autocomplete, "bounds", map);
-    }
-    const addListener = asFunction(autocompleteRecord.addListener);
-    const getPlaceFn = asFunction(autocompleteRecord.getPlace);
-    if (!addListener || !getPlaceFn) {
-      setTimeout(() => setError("Google Maps Autocomplete failed to initialize."), 0);
-      return;
-    }
-    addListener.call(autocomplete, "place_changed", () => {
-      const place = getPlaceFn.call(autocomplete);
-      const parsed = parseGoogleAddress(place);
-      if (!parsed) {
-        setError("Pick a place with a valid street address.");
-        return;
-      }
-      setError(null);
-      setSelected(parsed);
-      const next = { lat: parsed.lat, lng: parsed.lng };
-      const mapRecord = asRecord(map);
-      const markerRecord = asRecord(marker);
-      const panTo = asFunction(mapRecord.panTo);
-      const setPosition = asFunction(markerRecord.setPosition);
-      if (panTo) {
-        panTo.call(map, next);
-      }
-      if (setPosition) {
-        setPosition.call(marker, next);
-      }
-    });
-
-    const mapRecord = asRecord(map);
-    const mapAddListener = asFunction(mapRecord.addListener);
-    if (!mapAddListener) {
-      setTimeout(() => setError("Google Maps failed to initialize."), 0);
-      return;
-    }
-
-    mapAddListener.call(map, "click", (event: unknown) => {
-      const eventRecord = asRecord(event);
-      const latLng = asRecord(eventRecord.latLng);
-      const latFn = asFunction(latLng.lat);
-      const lngFn = asFunction(latLng.lng);
-      const lat = asNumber(latFn ? latFn.call(eventRecord.latLng) : null);
-      const lng = asNumber(lngFn ? lngFn.call(eventRecord.latLng) : null);
-      if (typeof lat !== "number" || typeof lng !== "number") {
-        return;
-      }
-      setError(null);
-      const markerRecord = asRecord(marker);
-      const markerSetPosition = asFunction(markerRecord.setPosition);
-      if (markerSetPosition) {
-        markerSetPosition.call(marker, { lat, lng });
-      }
-
-      const geocoderRecord = asRecord(geocoder);
-      const geocodeFn = asFunction(geocoderRecord.geocode);
-      if (!geocodeFn) {
-        setError("Unable to resolve this location. Try searching.");
+    const tryInit = () => {
+      if (cancelled || !mapContainerRef.current || !inputRef.current || mapRef.current) {
         return;
       }
 
-      geocodeFn.call(geocoder, { location: { lat, lng } }, (results: unknown, status: unknown) => {
-        const statusText = asString(status);
-        if (statusText !== "OK" || !Array.isArray(results) || !results[0]) {
-          setError("Unable to resolve this location. Try searching.");
+      const google = (window as unknown as { google?: unknown }).google;
+      const googleRecord = asRecord(google);
+      const mapsValue = googleRecord.maps;
+      const mapsRecord = asRecord(mapsValue);
+      const placesValue = mapsRecord.places;
+      const placesRecord = asRecord(placesValue);
+
+      const MapCtor = mapsRecord.Map as unknown as new (el: HTMLElement, options: Record<string, unknown>) => unknown;
+      const MarkerCtor = mapsRecord.Marker as unknown as new (options: Record<string, unknown>) => unknown;
+      const GeocoderCtor = mapsRecord.Geocoder as unknown as new () => unknown;
+      const AutocompleteCtor = placesRecord.Autocomplete as unknown as new (el: HTMLInputElement, options: Record<string, unknown>) => unknown;
+
+      if (!MapCtor || !MarkerCtor || !GeocoderCtor || !AutocompleteCtor) {
+        attempts += 1;
+        if (attempts < 25) {
+          setTimeout(tryInit, 200);
           return;
         }
-        const parsed = parseGoogleAddress(results[0]);
+        setError("Google Maps is not available. Check your API key, enabled APIs, billing, and referrer restrictions.");
+        return;
+      }
+
+      const initial = { lat: 28.4595, lng: 77.0266 };
+      const map = new MapCtor(mapContainerRef.current, {
+        center: initial,
+        zoom: 14,
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false,
+      });
+
+      const marker = new MarkerCtor({ map, position: initial });
+      const geocoder = new GeocoderCtor();
+
+      const autocomplete = new AutocompleteCtor(inputRef.current, {
+        fields: ["address_components", "formatted_address", "geometry", "name"],
+        componentRestrictions: { country: "in" },
+        types: ["geocode"],
+      });
+      const autocompleteRecord = asRecord(autocomplete);
+      const bindTo = asFunction(autocompleteRecord.bindTo);
+      if (bindTo) {
+        bindTo.call(autocomplete, "bounds", map);
+      }
+      const addListener = asFunction(autocompleteRecord.addListener);
+      const getPlaceFn = asFunction(autocompleteRecord.getPlace);
+      if (!addListener || !getPlaceFn) {
+        setError("Google Maps Autocomplete failed to initialize.");
+        return;
+      }
+      addListener.call(autocomplete, "place_changed", () => {
+        const place = getPlaceFn.call(autocomplete);
+        const parsed = parseGoogleAddress(place);
         if (!parsed) {
           setError("Pick a place with a valid street address.");
           return;
         }
+        setError(null);
         setSelected(parsed);
+        const next = { lat: parsed.lat, lng: parsed.lng };
+        const mapRecord = asRecord(map);
+        const markerRecord = asRecord(marker);
+        const panTo = asFunction(mapRecord.panTo);
+        const setPosition = asFunction(markerRecord.setPosition);
+        if (panTo) {
+          panTo.call(map, next);
+        }
+        if (setPosition) {
+          setPosition.call(marker, next);
+        }
       });
-    });
 
-    mapRef.current = map;
-    markerRef.current = marker;
-    geocoderRef.current = geocoder;
+      const mapRecord = asRecord(map);
+      const mapAddListener = asFunction(mapRecord.addListener);
+      if (!mapAddListener) {
+        setError("Google Maps failed to initialize.");
+        return;
+      }
+
+      mapAddListener.call(map, "click", (event: unknown) => {
+        const eventRecord = asRecord(event);
+        const latLng = asRecord(eventRecord.latLng);
+        const latFn = asFunction(latLng.lat);
+        const lngFn = asFunction(latLng.lng);
+        const lat = asNumber(latFn ? latFn.call(eventRecord.latLng) : null);
+        const lng = asNumber(lngFn ? lngFn.call(eventRecord.latLng) : null);
+        if (typeof lat !== "number" || typeof lng !== "number") {
+          return;
+        }
+        setError(null);
+        const markerRecord = asRecord(marker);
+        const markerSetPosition = asFunction(markerRecord.setPosition);
+        if (markerSetPosition) {
+          markerSetPosition.call(marker, { lat, lng });
+        }
+
+        const geocoderRecord = asRecord(geocoder);
+        const geocodeFn = asFunction(geocoderRecord.geocode);
+        if (!geocodeFn) {
+          setError("Unable to resolve this location. Try searching.");
+          return;
+        }
+
+        geocodeFn.call(geocoder, { location: { lat, lng } }, (results: unknown, status: unknown) => {
+          const statusText = asString(status);
+          if (statusText !== "OK" || !Array.isArray(results) || !results[0]) {
+            setError("Unable to resolve this location. Try searching.");
+            return;
+          }
+          const parsed = parseGoogleAddress(results[0]);
+          if (!parsed) {
+            setError("Pick a place with a valid street address.");
+            return;
+          }
+          setSelected(parsed);
+        });
+      });
+
+      mapRef.current = map;
+      markerRef.current = marker;
+      geocoderRef.current = geocoder;
+
+      setTimeout(() => {
+        if (!mapContainerRef.current) {
+          return;
+        }
+        if (!mapContainerRef.current.querySelector(".gm-style")) {
+          setError("Google Maps failed to render. Check API restrictions and billing, then reload.");
+        }
+      }, 2000);
+    };
+
+    tryInit();
+
+    return () => {
+      cancelled = true;
+    };
   }, [scriptReady]);
 
   const locateMe = async () => {
