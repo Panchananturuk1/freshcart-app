@@ -35,39 +35,71 @@ export function AppShell({ children }: AppShellProps) {
 }
 
 export function AppTopBar({ title, subtitle, showSearchShortcut = true }: AppTopBarProps) {
+  const pathname = usePathname();
   const activeAddressId = useAppStore((state) => state.activeAddressId);
   const addresses = useAppStore((state) => state.addresses);
   const cartCount = useAppStore((state) => state.cart.reduce((sum, item) => sum + item.quantity, 0));
+  const user = useAppStore((state) => state.user);
   const activeAddress = addresses.find((address) => address.id === activeAddressId) ?? addresses[0];
+  const avatarInitials = user?.name
+    ? user.name
+        .split(" ")
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("")
+    : "";
+  const accountHref = user ? "/account" : `/auth/sign-in?redirectTo=${encodeURIComponent(pathname)}`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/8 bg-[rgba(8,17,10,0.9)] backdrop-blur-xl">
       <div className="px-4 pb-4 pt-3 sm:px-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
-              <MapPin size={14} />
-              Deliver to
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <Link href="/" className="text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
+                FreshCart
+              </Link>
+              <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-200/80">
+                <MapPin size={14} />
+                Deliver to
+              </p>
+            </div>
             <h1 className="mt-2 truncate font-serif text-[1.75rem] leading-none text-white">{title}</h1>
             <p className="mt-2 truncate text-sm text-emerald-50/68">
               {subtitle ?? `${activeAddress?.title ?? "Select address"} • ${activeAddress?.eta ?? "Fast delivery"}`}
             </p>
           </div>
 
-          <Link
-            href="/cart"
-            className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-2xl border border-white/8 bg-white/5 px-3 text-white"
-          >
-            <div className="relative">
-              <ShoppingBasket size={20} />
-              {cartCount ? (
-                <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-lime-300 px-1 text-[10px] font-bold text-zinc-950">
-                  {cartCount}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/cart"
+              aria-label="Cart"
+              className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-2xl border border-white/8 bg-white/5 px-3 text-white"
+            >
+              <div className="relative">
+                <ShoppingBasket size={20} />
+                {cartCount ? (
+                  <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-lime-300 px-1 text-[10px] font-bold text-zinc-950">
+                    {cartCount}
+                  </span>
+                ) : null}
+              </div>
+            </Link>
+
+            <Link href={accountHref} aria-label={user ? "Account" : "Sign in"} className="inline-flex min-h-12 min-w-12 items-center justify-center">
+              {user ? (
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-lime-300 text-sm font-semibold text-zinc-950">
+                  {avatarInitials || <UserRound size={18} />}
                 </span>
-              ) : null}
-            </div>
-          </Link>
+              ) : (
+                <span className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/5 text-white">
+                  <UserRound size={18} />
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
 
         {showSearchShortcut ? (
