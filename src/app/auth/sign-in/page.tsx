@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { AppShell, AppTopBar, ScreenContent } from "@/components/app-shell";
@@ -19,6 +20,14 @@ export default function SignInPage() {
   const refreshOrders = useAppStore((state) => state.refreshOrders);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signUpHref, setSignUpHref] = useState("/auth/sign-up");
+
+  useEffect(() => {
+    const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
+    if (redirectTo && redirectTo.startsWith("/")) {
+      setSignUpHref(`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`);
+    }
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,6 +85,12 @@ export default function SignInPage() {
               {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </form>
+          <p className="mt-5 text-sm text-emerald-50/72">
+            New here?{" "}
+            <Link href={signUpHref} className="font-semibold text-lime-300">
+              Create an account
+            </Link>
+          </p>
         </section>
       </ScreenContent>
     </AppShell>
