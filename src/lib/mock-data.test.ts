@@ -12,4 +12,10 @@ describe("mock-data helpers", () => {
 
     expect(imageUrl).toBe(`/images/products/${products[0].slug}.jpg`);
   });
+
+  it("prefers a local imagePath when present", () => {
+    const imageUrl = getProductImage({ slug: "demo", imagePath: "/images/products/demo.jpg" });
+
+    expect(imageUrl).toBe("/images/products/demo.jpg");
+  });
 });

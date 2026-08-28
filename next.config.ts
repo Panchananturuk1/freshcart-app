@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    contentDispositionType: "inline",
+    localPatterns: [{ pathname: "/images/**" }],
     remotePatterns: [
       {
         protocol: "https",
