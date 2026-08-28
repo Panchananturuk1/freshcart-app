@@ -78,9 +78,13 @@ export const getFeaturedProducts = async (): Promise<ProductDTO[]> => {
   });
   const bySlug = new Map(products.map((product) => [product.slug, toProductDTO(product)]));
 
-  return HOME_FEATURED_SLUGS.map((slug) => bySlug.get(slug)).filter(
-    (product): product is ProductDTO => Boolean(product) && productHasImage(product),
-  );
+  return HOME_FEATURED_SLUGS.map((slug) => bySlug.get(slug)).filter((product): product is ProductDTO => {
+    if (!product) {
+      return false;
+    }
+
+    return productHasImage(product);
+  });
 };
 
 export const getProductBySlugDb = async (slug: string): Promise<ProductDTO | null> => {
