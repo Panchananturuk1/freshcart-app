@@ -43,6 +43,19 @@ async function main() {
       },
     });
   }
+
+  const keepProductIds = products.map((product) => product.id);
+  const keepCategoryIds = categories.map((category) => category.id);
+
+  await prisma.orderItem.deleteMany({
+    where: { productId: { notIn: keepProductIds } },
+  });
+  await prisma.product.deleteMany({
+    where: { id: { notIn: keepProductIds } },
+  });
+  await prisma.category.deleteMany({
+    where: { id: { notIn: keepCategoryIds } },
+  });
 }
 
 main()

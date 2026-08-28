@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import "server-only";
 
 import type { CategoryDTO, ProductDTO } from "@/lib/catalog-types";
@@ -42,14 +44,23 @@ const toProductDTO = (product: {
   imagePath: product.imagePath,
 });
 
+const productHasImage = (product: { slug: string; imagePath: string }) => {
+  const relativePath = product.imagePath.startsWith("/") ? product.imagePath.slice(1) : `images/products/${product.slug}.jpg`;
+  return fs.existsSync(path.join(process.cwd(), "public", relativePath));
+};
+
 export const getCategories = async (): Promise<CategoryDTO[]> => {
-  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
-  return categories.map(toCategoryDTO);
+  const [categories, products] = await Promise.all([
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    getProducts(),
+  ]);
+  const usedCategoryIds = new Set(products.map((product) => product.categoryId));
+  return categories.map(toCategoryDTO).filter((category) => usedCategoryIds.has(category.id));
 };
 
 export const getProducts = async (): Promise<ProductDTO[]> => {
   const products = await prisma.product.findMany({ orderBy: { name: "asc" } });
-  return products.map(toProductDTO);
+  return products.map(toProductDTO).filter(productHasImage);
 };
 
 const HOME_FEATURED_SLUGS = [
@@ -67,10 +78,17 @@ export const getFeaturedProducts = async (): Promise<ProductDTO[]> => {
   });
   const bySlug = new Map(products.map((product) => [product.slug, toProductDTO(product)]));
 
-  return HOME_FEATURED_SLUGS.map((slug) => bySlug.get(slug)).filter((product): product is ProductDTO => Boolean(product));
+  return HOME_FEATURED_SLUGS.map((slug) => bySlug.get(slug)).filter(
+    (product): product is ProductDTO => Boolean(product) && productHasImage(product),
+  );
 };
 
 export const getProductBySlugDb = async (slug: string): Promise<ProductDTO | null> => {
   const product = await prisma.product.findUnique({ where: { slug } });
-  return product ? toProductDTO(product) : null;
+  if (!product) {
+    return null;
+  }
+
+  const dto = toProductDTO(product);
+  return productHasImage(dto) ? dto : null;
 };
