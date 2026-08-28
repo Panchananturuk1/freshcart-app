@@ -6,7 +6,7 @@ import { CategoryRail, HomePromoCard, OrderTimeline, ProductCard, QuickActions, 
 import type { OrderTimelineDTO } from "@/lib/catalog-types";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getCategories, getProducts } from "@/lib/catalog-db";
+import { getCategories, getFeaturedProducts } from "@/lib/catalog-db";
 import { customerSpotlight } from "@/lib/mock-data";
 
 const statusLabel = (status: string) => {
@@ -29,8 +29,11 @@ const statusLabel = (status: string) => {
 };
 
 export default async function HomePage() {
-  const [categories, products, user] = await Promise.all([getCategories(), getProducts(), getSessionUser()]);
-  const featuredProducts = products.slice(0, 6);
+  const [categories, featuredProducts, user] = await Promise.all([
+    getCategories(),
+    getFeaturedProducts(),
+    getSessionUser(),
+  ]);
 
   const [addresses, latestOrder] = await Promise.all([
     user
@@ -67,7 +70,7 @@ export default async function HomePage() {
     <AppShell>
       <AppTopBar title="FreshCart" subtitle="Home delivery in 10-15 mins • Sector 42, Gurugram" />
       <ScreenContent>
-        <HomePromoCard products={products} />
+        <HomePromoCard products={featuredProducts} />
         <QuickActions />
         <CategoryRail categories={categories} />
 
@@ -116,7 +119,7 @@ export default async function HomePage() {
             {liveOrder ? <OrderTimeline order={liveOrder} /> : null}
           </div>
           <div className="space-y-4">
-            <ReorderCard products={products} />
+            <ReorderCard products={featuredProducts} />
             <section className="rounded-[1.75rem] border border-white/8 bg-white/5 p-5">
               <SectionHeader eyebrow="Addresses" title="Saved delivery spots" />
               <div className="mt-4 space-y-3">

@@ -6,6 +6,12 @@ FreshCart is a mobile-first grocery delivery application built with Next.js, Pri
 
 [https://freshcart-app-woad.vercel.app](https://freshcart-app-woad.vercel.app)
 
+## Home screen
+
+The home screen shows grocery products with photos, including avocados, spinach, milk, paneer, granola, and cold brew.
+
+![FreshCart home screen with grocery products](docs/screenshots/home-screen.png)
+
 ## Stack
 
 - Next.js App Router

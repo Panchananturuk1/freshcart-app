@@ -52,6 +52,24 @@ export const getProducts = async (): Promise<ProductDTO[]> => {
   return products.map(toProductDTO);
 };
 
+const HOME_FEATURED_SLUGS = [
+  "hass-avocado-pack",
+  "baby-spinach-bag",
+  "organic-toned-milk",
+  "fresh-malai-paneer",
+  "berry-almond-granola",
+  "classic-cold-brew",
+] as const;
+
+export const getFeaturedProducts = async (): Promise<ProductDTO[]> => {
+  const products = await prisma.product.findMany({
+    where: { slug: { in: [...HOME_FEATURED_SLUGS] } },
+  });
+  const bySlug = new Map(products.map((product) => [product.slug, toProductDTO(product)]));
+
+  return HOME_FEATURED_SLUGS.map((slug) => bySlug.get(slug)).filter((product): product is ProductDTO => Boolean(product));
+};
+
 export const getProductBySlugDb = async (slug: string): Promise<ProductDTO | null> => {
   const product = await prisma.product.findUnique({ where: { slug } });
   return product ? toProductDTO(product) : null;
