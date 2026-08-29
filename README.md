@@ -4,7 +4,7 @@ FreshCart is a mobile-first grocery delivery application built with Next.js, Pri
 
 ## Live Demo
 
-[https://freshcart-app-woad.vercel.app](https://freshcart-app-woad.vercel.app)
+[https://www.freshcarts.in](https://www.freshcarts.in)
 
 ## Home screen
 
@@ -87,6 +87,12 @@ npm run build
 
 - Email: `jamie@example.com`
 - Password: `freshcart123`
+
+## Android app
+
+A native Android client lives in [`android/`](android/). It is Jetpack Compose + Material 3, uses the same FreshCart API as the website, and is set up for a Google Play upload.
+
+Open the `android/` folder in Android Studio, then see [`android/README.md`](android/README.md) and [`android/PLAY_STORE.md`](android/PLAY_STORE.md).
 
 ## Notes
 

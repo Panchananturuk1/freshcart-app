@@ -1,0 +1,11 @@
+-keepattributes Signature, InnerClasses, EnclosingMethod, RuntimeVisibleAnnotations, AnnotationDefault
+-keepattributes *Annotation*
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+-dontwarn kotlinx.serialization.**
+
+-keep class com.freshcart.android.** { *; }
+-keepclassmembers class com.freshcart.android.** { *; }
+-keep class kotlinx.serialization.json.** { *; }
+-keepclassmembers class kotlinx.serialization.json.** { *; }
