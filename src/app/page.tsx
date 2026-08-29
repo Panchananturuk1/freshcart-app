@@ -1,18 +1,13 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
 import Link from "next/link";
 import { ArrowRight, Clock3, Wallet } from "lucide-react";
 
 import { AppShell, AppTopBar, ScreenContent, SectionHeader } from "@/components/app-shell";
 import { CategoryRail, HomePromoCard, OrderTimeline, ProductCard, QuickActions, ReorderCard } from "@/components/commerce-ui";
-import type { OrderTimelineDTO, ProductDTO } from "@/lib/catalog-types";
+import type { OrderTimelineDTO } from "@/lib/catalog-types";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getCategories, getProducts } from "@/lib/catalog-db";
+import { getCategories, getFeaturedProducts } from "@/lib/catalog-db";
 import { customerSpotlight } from "@/lib/mock-data";
-
-const productHasPhoto = (product: ProductDTO) =>
-  Boolean(product.imagePath) && existsSync(path.join(process.cwd(), "public", product.imagePath.replace(/^\//, "")));
 
 const statusLabel = (status: string) => {
   switch (status) {
@@ -34,11 +29,11 @@ const statusLabel = (status: string) => {
 };
 
 export default async function HomePage() {
-  const [categories, products, user] = await Promise.all([getCategories(), getProducts(), getSessionUser()]);
-  const productsWithPhotos = products.filter(productHasPhoto);
-  const featuredProducts = (productsWithPhotos.length ? productsWithPhotos : products).slice(0, 6);
-  const promoProducts = (productsWithPhotos.length ? productsWithPhotos : products).slice(0, 4);
-  const reorderProducts = (productsWithPhotos.length ? productsWithPhotos : products).slice(0, 3);
+  const [categories, featuredProducts, user] = await Promise.all([
+    getCategories(),
+    getFeaturedProducts(),
+    getSessionUser(),
+  ]);
 
   const [addresses, latestOrder] = await Promise.all([
     user
@@ -75,7 +70,7 @@ export default async function HomePage() {
     <AppShell>
       <AppTopBar title="FreshCart" subtitle="Home delivery in 10-15 mins • Sector 42, Gurugram" />
       <ScreenContent>
-        <HomePromoCard products={promoProducts} />
+        <HomePromoCard products={featuredProducts} />
         <QuickActions />
         <CategoryRail categories={categories} />
 
@@ -124,7 +119,7 @@ export default async function HomePage() {
             {liveOrder ? <OrderTimeline order={liveOrder} /> : null}
           </div>
           <div className="space-y-4">
-            <ReorderCard products={reorderProducts} />
+            <ReorderCard products={featuredProducts} />
             <section className="rounded-[1.75rem] border border-white/8 bg-white/5 p-5">
               <SectionHeader eyebrow="Addresses" title="Saved delivery spots" />
               <div className="mt-4 space-y-3">

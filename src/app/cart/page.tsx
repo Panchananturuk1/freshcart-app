@@ -106,7 +106,7 @@ export default function CartPage() {
           </div>
         </section>
 
-        <aside className="sticky bottom-20 rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,_rgba(163,230,53,0.08),_rgba(255,255,255,0.05))] p-5">
+        <aside className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,_rgba(163,230,53,0.08),_rgba(255,255,255,0.05))] p-5">
           <p className="text-[11px] uppercase tracking-[0.24em] text-emerald-100/60">Checkout summary</p>
           <div className="mt-4 space-y-4 rounded-[1.5rem] border border-white/8 bg-black/20 p-5 text-sm">
             <div className="flex justify-between text-emerald-50/75">

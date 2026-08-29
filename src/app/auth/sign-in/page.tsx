@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, Suspense, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppShell, AppTopBar, ScreenContent } from "@/components/app-shell";
 import type { AppUser } from "@/lib/auth-types";
@@ -11,6 +12,23 @@ type AuthResponse = {
   user?: AppUser;
   message?: string;
 };
+
+function SignUpLink() {
+  const searchParams = useSearchParams();
+  const signUpHref = useMemo(() => {
+    const redirectTo = searchParams.get("redirectTo");
+    if (redirectTo && redirectTo.startsWith("/")) {
+      return `/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`;
+    }
+    return "/auth/sign-up";
+  }, [searchParams]);
+
+  return (
+    <Link href={signUpHref} className="font-semibold text-lime-300">
+      Create an account
+    </Link>
+  );
+}
 
 export default function SignInPage() {
   const router = useRouter();
@@ -76,6 +94,18 @@ export default function SignInPage() {
               {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </form>
+          <p className="mt-5 text-sm text-emerald-50/72">
+            New here?{" "}
+            <Suspense
+              fallback={
+                <Link href="/auth/sign-up" className="font-semibold text-lime-300">
+                  Create an account
+                </Link>
+              }
+            >
+              <SignUpLink />
+            </Suspense>
+          </p>
         </section>
       </ScreenContent>
     </AppShell>
