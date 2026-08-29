@@ -272,5 +272,14 @@ export const customerSpotlight = {
 
 export const getProductBySlug = (slug: string) => products.find((product) => product.slug === slug);
 
-export const getProductImage = (product: { slug: string }, _size?: string) =>
-  `/images/products/${product.slug}.jpg`;
+export const getProductImage = (product: { slug: string; imagePath?: string }, _size?: string) => {
+  if (product.imagePath?.startsWith("http://") || product.imagePath?.startsWith("https://")) {
+    return product.imagePath;
+  }
+
+  if (product.imagePath?.startsWith("/")) {
+    return product.imagePath;
+  }
+
+  return `/images/products/${product.slug}.jpg`;
+};

@@ -105,6 +105,9 @@ export default function AccountPage() {
                 {user ? "Add another account" : "Create account"}
               </Link>
             </div>
+            <Link href="/privacy" className="mt-4 inline-flex text-sm text-lime-200/90 underline-offset-4 hover:underline">
+              Privacy policy
+            </Link>
           </div>
 
           <div className="rounded-[1.9rem] border border-white/8 bg-white/5 p-5">

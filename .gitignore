@@ -42,3 +42,22 @@ prisma/**/*.db
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/*.jks
+android/*.keystore
+android/keystore.properties
+android/dist/
+android/**/*.apk
+android/**/*.aab
+android/**/*.ap_
+android/**/*.idsig
+*.apk
+*.aab
+*.jks
+*.keystore

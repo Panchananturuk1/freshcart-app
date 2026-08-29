@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CreditCard, Heart, ReceiptText, Sparkles, Star, Truck } from "lucide-react";
 
 import type { CategoryDTO, OrderTimelineDTO, ProductDTO } from "@/lib/catalog-types";
-import { getProductImage } from "@/lib/mock-data";
+import { ProductPhoto } from "@/components/product-photo";
 import { useAppStore } from "@/store/use-app-store";
 import { AppTopBar, InlineMeta } from "@/components/app-shell";
 
@@ -47,7 +46,7 @@ export function HomePromoCard({ products }: { products: ProductDTO[] }) {
           {products.slice(0, 4).map((product) => (
             <div key={product.id} className="rounded-[1.5rem] bg-[#f4f1e8] p-2.5 text-zinc-900">
               <div className="relative aspect-square overflow-hidden rounded-[1.25rem]">
-                <Image src={getProductImage(product)} alt={product.name} fill className="object-cover" sizes="180px" unoptimized />
+                <ProductPhoto product={product} sizes="180px" />
               </div>
               <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">{product.eta}</p>
               <p className="mt-1 line-clamp-2 text-sm font-semibold">{product.name}</p>
@@ -78,7 +77,7 @@ export function ProductCard({ product }: { product: ProductDTO }) {
   return (
     <article className="overflow-hidden rounded-[1.6rem] border border-white/8 bg-[#f4f1e8] text-zinc-900 shadow-[0_18px_90px_-44px_rgba(0,0,0,0.85)]">
       <div className="relative aspect-square">
-        <Image src={getProductImage(product)} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 240px" unoptimized />
+        <ProductPhoto product={product} sizes="(max-width: 768px) 50vw, 240px" />
         <div className="absolute left-3 top-3 rounded-full bg-white/88 px-2 py-1 text-[11px] font-semibold text-zinc-700">{product.unit}</div>
       </div>
       <div className="space-y-3 p-3">
@@ -152,7 +151,7 @@ export function ReorderCard({ products }: { products: ProductDTO[] }) {
         {products.slice(0, 3).map((product) => (
           <div key={product.id} className="rounded-[1.35rem] bg-black/20 p-2.5">
             <div className="relative aspect-square overflow-hidden rounded-[1.1rem]">
-              <Image src={getProductImage(product)} alt={product.name} fill className="object-cover" sizes="120px" unoptimized />
+              <ProductPhoto product={product} sizes="120px" />
             </div>
             <p className="mt-2 line-clamp-2 text-xs font-medium text-white">{product.name}</p>
           </div>

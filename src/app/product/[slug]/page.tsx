@@ -1,10 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock3, Leaf, ShieldCheck } from "lucide-react";
 
 import { AppHeader } from "@/components/commerce-ui";
-import { getProductImage } from "@/lib/mock-data";
+import { ProductPhoto } from "@/components/product-photo";
 import { getProductBySlugDb } from "@/lib/catalog-db";
 
 type PageProps = {
@@ -25,20 +24,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <main className="mx-auto grid max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_0.9fr] lg:px-8">
         <section className="overflow-hidden rounded-[2rem] border border-white/8 bg-[#f4f1e8] p-4 text-zinc-900">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem]">
-            <Image
-              src={getProductImage(product, "landscape_4_3")}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
-              unoptimized
-            />
+            <ProductPhoto product={product} sizes="(max-width: 1024px) 100vw, 50vw" priority />
           </div>
           <div className="grid gap-3 pt-4 sm:grid-cols-3">
             {[product, product, product].map((entry, index) => (
               <div key={`${entry.id}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-                <Image src={getProductImage(entry)} alt={`${entry.name} view ${index + 1}`} fill className="object-cover" sizes="200px" unoptimized />
+                <ProductPhoto product={entry} sizes="200px" />
               </div>
             ))}
           </div>
